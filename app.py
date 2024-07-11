@@ -30,7 +30,7 @@ def submit_table():
     for key in request.form.keys():
         table_data[key] = request.form.getlist(key)
 
-    value_x = int(table_data.get('value_x', [''])[0])
+    value_x = float(table_data.get('value_x', [''])[0])
     if 'value_x' in table_data:
         del table_data['value_x']
 
@@ -45,9 +45,16 @@ def submit_table():
     if 'cell_0_2' in table_data:
         del table_data['cell_0_2']
 
+
+
+    # Преобразуем запятые в точки
+    table_data = {key: [str(val).replace(',', '.') for val in value] for key, value in table_data.items()}
+
     # Преобразуем данные в числовой формат
     first_column_x = []
     second_column_y = []
+    print("!!!!!!!!!!!!!!!!!!!!!!!", table_data, type(table_data))
+
     for key, values in table_data.items():
         for value in values:
             if key.endswith('_1'):
@@ -83,7 +90,8 @@ def submit_table():
             # Вычисляем коэффициент корреляции
             correlation, p_value = pearsonr(x, y)
             print("Коэффициент корреляции Линейная:", correlation)
-            correlation = round(correlation, 2)
+            # correlation = round(correlation, 3) 
+            
 
             x = np.array(spisok_x).reshape((-1, 1))
             y = np.array(spisok_y)
@@ -104,9 +112,11 @@ def submit_table():
             y_pred = model.predict(new_x)
             print('y предсказанная Линейная при x = :', y_pred)
             fin=[]
+            regressiya = 'Линейная'
             fin.append(correlation)
             fin.append(mape)
             fin.append(y_pred)
+            fin.append(regressiya)
             
             return  fin
         except:
@@ -149,9 +159,11 @@ def submit_table():
             mape = np.mean(np.abs((y - y_fit) / y)) * 100
             print("Средняя ошибка аппроксимации (MAPE):", mape)
             fin = []
+            regressiya = 'Экспонента'
             fin.append(correlation)
             fin.append(mape)
             fin.append(y_pred)
+            fin.append(regressiya)
             return  fin
         except:
             print('ошибка расчетов')
@@ -192,9 +204,11 @@ def submit_table():
             y_pred = hyperbolic_func(x, a_opt, b_opt)
             print('y_pred гиперболическая ',y_pred, ' при х = 50')
             fin = []
+            regressiya = 'Гиперболическая'
             fin.append(correlation)
             fin.append(mape)
             fin.append(y_pred)
+            fin.append(regressiya)
             return  fin
         except:
             print('ошибка расчетов')
@@ -207,7 +221,7 @@ def submit_table():
         #### 4 Степенная
         print()
         print('Степенная')
-        print('НЕ ГОТОВА')
+ 
         try:
             # Преобразование данных для степенной регрессии
             # Преобразование в numpy массивы
@@ -246,9 +260,13 @@ def submit_table():
             y_pred = a * x_pred**b
             print(f"4. Предсказанное значение y для x = {x_pred}: {y_pred}")
             fin = []
+            regressiya = 'Степенная'
             fin.append(correlation)
             fin.append(mape)
             fin.append(y_pred)
+            fin.append(regressiya)
+            
+            
             return  fin
         except:
                 print('ошибка расчетов')
@@ -288,9 +306,12 @@ def submit_table():
             print()
 
             fin = []
+            regressiya = 'Параболическая'
             fin.append(correlation)
             fin.append(mape)
             fin.append(y_pred)
+            fin.append(regressiya)
+            
             return  fin
         except:
             print('ошибка расчетов')
@@ -338,9 +359,12 @@ def submit_table():
             print(f"4. Предсказанное значение y для x = {x_pred}: {y_pred}")
 
             fin = []
+            regressiya = 'Логарифмическая'
             fin.append(correlation)
             fin.append(mape)
             fin.append(y_pred)
+            fin.append(regressiya)
+            
             return  fin
         except:
             print('ошибка расчетов')
@@ -354,16 +378,7 @@ def submit_table():
     fin_step = stepennaya(first_column_x, second_column_y, value_x)
     fin_parab = parabolicheskaya(first_column_x, second_column_y, value_x)
     fin_loga = logarifmicheskaya(first_column_x, second_column_y, value_x)
-    # print('fin_loga',fin_loga)
-    # print('fin_loga',fin_loga[0])
 
-    # # Ваши списки
-    # fin_lin = [0.69, 0.8, 0.8]
-    # fin_eksp =  [0.6, 0.6, 0.7]
-    # fin_gip =  [0.58, 0.8, 0.6]
-    # fin_step =  [0.55, 0.8, 0.5]
-    # fin_parab =  [0.49, 0.1, 0.4]
-    # fin_loga =  [0.33, 0.8, 0.3]
 
     # Все списки в один
     all_lists = [fin_lin, fin_eksp, fin_gip, fin_step, fin_parab, fin_loga]
@@ -397,22 +412,57 @@ def submit_table():
         elif 0 <= first_value < 0.1:
             intervals["0 до 0.1"].append(lst)
 
-    # Функция для поиска третьего значения списка с наименьшим вторым значением в интервалах
-    def find_min_second_value(intervals):
-        for interval in intervals.values():
-            if interval:
-                # Найти список с наименьшим вторым значением
-                min_list = min(interval, key=lambda x: x[1])
-                return min_list[2]
-        return None
+    reg = ''
+    #проверяем интервалы 
+    def check_inter(interval):
+        if "0.99 до 1" in intervals:
+            values123 = intervals["0.99 до 1"]
+            min_value_list = min(values123, key=lambda x: x[1])
+            reg = min_value_list[3]
+            return min_value_list[2], reg 
+        elif '0.9 до 0.99' in intervals  and intervals['c']:
+            values = intervals['0.9 до 0.99']
+            min_value_list = min(values, key=lambda x: x[1])
+            reg = min_value_list[3]
+            return min_value_list[2], reg 
+        elif '0.7 до 0.9' in intervals  and intervals['0.7 до 0.9']:
+            values = intervals['0.7 до 0.9']
+            min_value_list = min(values, key=lambda x: x[1])
+            reg = min_value_list[3]
+            return min_value_list[2], reg 
+        elif '0.5 до 0.7' in intervals  and intervals['0.5 до 0.7']:
+            values = intervals['0.5 до 0.7']
+            min_value_list = min(values, key=lambda x: x[1])
+            reg = min_value_list[3]
+            return min_value_list[2], reg 
+        elif '0.3 до 0.5' in intervals  and intervals['0.3 до 0.5']:
+            values = intervals['0.3 до 0.5']
+            min_value_list = min(values, key=lambda x: x[1])
+            reg = min_value_list[3]
+            return min_value_list[2], reg 
+        elif '0.1 до 0.3' in intervals  and intervals['0.1 до 0.3']:
+            values = intervals['0.1 до 0.3']
+            min_value_list = min(values, key=lambda x: x[1])
+            reg = min_value_list[3]
+            return min_value_list[2], reg 
+        elif '0 до 0.1' in intervals  and intervals['0 до 0.1']:
+            values = intervals['0 до 0.1']
+            min_value_list = min(values, key=lambda x: x[1])
+            reg = min_value_list[3]
+            return min_value_list[2], reg 
+        else:
+            return print('ошибка')
+    
 
-    # Найти и вывести результат
-    result = find_min_second_value(intervals)
 
-    final_ras = float(result)
+    result, reg = check_inter(intervals)
+    # result = round(result[0], 4)
+    
+    result = float(round(result,4))
+    print('check_inter(intervalsresult)',result, type(result))
 
-    print(f"Результат:", final_ras)
-    print(f"Результат:" , result,type(final_ras))
+    
+    print("Результат:48" , )
     print('Линейная')
     print(fin_lin,)
     print('эспк')
@@ -425,9 +475,10 @@ def submit_table():
     print(fin_parab,)
     print('лога')
     print(fin_loga,)
+    print('reg', reg)
 
 
-    return render_template('table_result.html', table_data=table_data, first_value=first_value_table, second_value=second_value_table, result=final_ras, value_x=value_x, )
+    return render_template('table_result.html', table_data=table_data, first_value=first_value_table, second_value=second_value_table, result=result, value_x=value_x,reg=reg )
 
 
 
