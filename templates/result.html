@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Result Page</title>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 8px;
+        }
+        input[type="text"] {
+            width: 100%;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <h1>Первая строка названия, количество измерений: {{ number_table }}</h1>
+    
+    <!-- Одна форма для обеих задач -->
+    <form id="combined_form" action="/submit_table" method="POST">
+        <!-- Форма для ввода таблицы -->
+        <table>
+            <thead>
+                <!-- <tr>
+                    <th>Значение X {{first_value}}</th>
+                    <th>Значение {{second_value}}Y</th>
+                </tr> -->
+            </thead>
+            <tbody>
+                {% for i in range(number|int) %}
+                <tr>
+                    <td><input type="text" name="cell_{{i}}_1"></td>
+                    <td><input type="text" name="cell_{{i}}_2"></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Форма для ввода значения X -->
+        <label id="value-x" for="value_x">Введите :</label>
+        <input type="text" id="value_x" name="value_x">
+
+        <!-- Кнопка для отправки всей формы -->
+        <button type="submit">Вычислить</button>
+    </form>
+
+    <script>
+        const form = document.querySelector('#combined_form table tbody')
+        const td = form.children[0].children[0]
+
+        td.addEventListener('change', function(e) {
+            console.log(e.target.value)
+            const value = document.querySelector('#value-x')
+            value.textContent = `Введите ${e.target.value}:`
+        })
+    </script>
+</body>
+</html>

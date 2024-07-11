@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Table Result</title>
+</head>
+<body>
+    <h1>Результат</h1>
+    <table>
+        <thead>
+            <tr>
+                <th> {{first_value }}</th>
+                <th> {{second_value}}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for key, value in table_data.items() %}
+            {% if loop.index0 % 2 == 0 %}
+            <tr>
+            {% endif %}
+                <td>{{ value }}</td>
+            {% if loop.index0 % 2 == 2 %}
+            </tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+    Прогназируемое значение {{ result }} в соответствии с данными  {{ first_value }} {{ value_x }}
+    <form action="/" method="get">
+        <button type="submit">В начало</button>
+    </form>
+    
+</body>
+</html>
