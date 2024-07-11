@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Result Page</title>
+    <title>Страница с результатами</title>
     <style>
         table, th, td {
             border: 1px solid black;
@@ -19,7 +19,8 @@
     </style>
 </head>
 <body>
-    <h1>Первая строка названия, количество измерений: {{ number_table }}</h1>
+    <h1>Первая строка названия,<br>
+        Количество измерений: {{ number_table }}</h1>
     
     <!-- Одна форма для обеих задач -->
     <form id="combined_form" action="/submit_table" method="POST">
@@ -54,6 +55,24 @@
             const value = document.querySelector('#value-x')
             value.textContent = `Введите ${e.target.value}:`
         })
+    </script>
+    <script>
+        document.getElementById('combined_form').addEventListener('submit', function(event) {
+            var inputs = document.querySelectorAll('input[type="text"]');
+            var valid = true;
+
+            // inputs = inputs.slice(2);
+            for(i=2; i<inputs.length; i++){
+                if (!/^\d+$/.test(inputs[i].value)) {
+                    valid = false;
+                }
+            }
+
+            if (!valid) {
+                alert('Пожалуйста, введите только цифры.');
+                event.preventDefault();
+            }
+        });
     </script>
 </body>
 </html>
