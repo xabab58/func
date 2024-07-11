@@ -63,7 +63,8 @@
 
             // inputs = inputs.slice(2);
             for(i=2; i<inputs.length; i++){
-                if (!/^\d+$/.test(inputs[i].value)) {
+                if (!/^(\d+([.,])?\d*)$/.test(inputs[i].value)) {
+                    
                     valid = false;
                 }
             }
