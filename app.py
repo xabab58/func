@@ -113,6 +113,11 @@ def submit_table():
             print('y предсказанная Линейная при x = :', y_pred)
             fin=[]
             regressiya = 'Линейная'
+            # correlation = round(correlation[0], 4)
+            
+            correlation=float(correlation)
+            y_pred=float(y_pred)
+            y_pred=round(y_pred,4)
             fin.append(correlation)
             fin.append(mape)
             fin.append(y_pred)
@@ -158,6 +163,8 @@ def submit_table():
             print("Предсказанное значение y для x =", x_pred, ":", y_pred)
             mape = np.mean(np.abs((y - y_fit) / y)) * 100
             print("Средняя ошибка аппроксимации (MAPE):", mape)
+            y_pred=float(y_pred)
+            y_pred=round(y_pred,4)
             fin = []
             regressiya = 'Экспонента'
             fin.append(correlation)
@@ -203,6 +210,8 @@ def submit_table():
             x = value_x
             y_pred = hyperbolic_func(x, a_opt, b_opt)
             print('y_pred гиперболическая ',y_pred, ' при х = 50')
+            y_pred=float(y_pred)
+            y_pred=round(y_pred,4)
             fin = []
             regressiya = 'Гиперболическая'
             fin.append(correlation)
@@ -259,6 +268,8 @@ def submit_table():
             x_pred = 50
             y_pred = a * x_pred**b
             print(f"4. Предсказанное значение y для x = {x_pred}: {y_pred}")
+            y_pred=float(y_pred)
+            y_pred=round(y_pred,4)
             fin = []
             regressiya = 'Степенная'
             fin.append(correlation)
@@ -304,6 +315,8 @@ def submit_table():
             y_pred = np.polyval(p, x_pred)  # Предсказанное значение
             print(f'y_pred гиперболическая {y_pred} при x = 50')
             print()
+            y_pred=float(y_pred)
+            y_pred=round(y_pred,4)
 
             fin = []
             regressiya = 'Параболическая'
@@ -357,6 +370,8 @@ def submit_table():
             x_pred = value_x
             y_pred = a * np.log(x_pred) + b
             print(f"4. Предсказанное значение y для x = {x_pred}: {y_pred}")
+            y_pred=float(y_pred)
+            y_pred=round(y_pred,4)
 
             fin = []
             regressiya = 'Логарифмическая'
@@ -456,9 +471,10 @@ def submit_table():
 
 
     result, reg = check_inter(intervals)
-    # result = round(result[0], 4)
+    # result=round(result,result)
     
-    result = float(round(result,4))
+    # result = float(result,3)
+    # result = round(result,3)
     print('check_inter(intervalsresult)',result, type(result))
 
     
