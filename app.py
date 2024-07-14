@@ -1,18 +1,18 @@
 from flask import Flask, render_template, request
-import numpy as np
-from scipy.stats import pearsonr
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_absolute_percentage_error
-from scipy.optimize import curve_fit
-from sklearn.metrics import r2_score
+from functions import *
+from grafik import *
 
-###VERSION 1.4###
 
+
+###VERSION 1.5###
+PEOPLE_FOLDER = os.path.join('static', 'people_photo')
 
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = PEOPLE_FOLDER
 
 @app.route('/')
 def home():
+
     return render_template('index.html')
 
 @app.route('/result', methods=['POST'])
@@ -53,7 +53,7 @@ def submit_table():
     # Преобразуем данные в числовой формат
     first_column_x = []
     second_column_y = []
-    print("!!!!!!!!!!!!!!!!!!!!!!!", table_data, type(table_data))
+
 
     for key, values in table_data.items():
         for value in values:
@@ -71,320 +71,6 @@ def submit_table():
                 first_column_x.append(float(value))  # Преобразуем в числовой формат сразу
             elif key.endswith('_2'):
                 second_column_y.append(float(value))  # Преобразуем в числовой формат сразу
-
-
-    print('table_data:', table_data)
-    print('first_column_x:', first_column_x)
-    print('second_column_y:', second_column_y)
-    print('type(first_column_x)',type(first_column_x[0]),first_column_x[0])
-    print('type(value_x)',type(value_x),value_x)
-
-    def lineinaya(spisok_x, spisok_y, value_x):
-        #Линейная
-        print('######################')
-        print('Экспонента')
-        print()
-        try:
-            x = np.array(spisok_x)
-            y = np.array(spisok_y)
-            # Вычисляем коэффициент корреляции
-            correlation, p_value = pearsonr(x, y)
-            print("Коэффициент корреляции Линейная:", correlation)
-            # correlation = round(correlation, 3) 
-            
-
-            x = np.array(spisok_x).reshape((-1, 1))
-            y = np.array(spisok_y)
-
-            model = LinearRegression()
-            model.fit(x, y)
-            r_sq = model.score(x, y)
-            print('Коэффициент детерминации : Линейная', r_sq)
-
-            # Предсказываем значения для каждого наблюдения
-            y_pred = model.predict(x)
-            # Рассчитываем среднюю ошибку аппроксимации
-            mape = mean_absolute_percentage_error(y, y_pred)
-            print("Средняя ошибка аппроксимации: Линейная", mape * 100, "%")
-
-            # Расчет у по x 
-            new_x = np.array([[value_x]])
-            y_pred = model.predict(new_x)
-            print('y предсказанная Линейная при x = :', y_pred)
-            fin=[]
-            regressiya = 'Линейная'
-            # correlation = round(correlation[0], 4)
-            
-            correlation=float(correlation)
-            y_pred=float(y_pred)
-            y_pred=round(y_pred,4)
-            fin.append(correlation)
-            fin.append(mape)
-            fin.append(y_pred)
-            fin.append(regressiya)
-            
-            return  fin
-        except:
-            print('ошибка расчетов')
-            fin = [0, 0, 0]
-            return fin
-
-    def eksponenta(spisok_x, spisok_y, value_x):
-        #Экспонента
-        print('######################')
-        print('Экспонента')
-        print()
-        try:
-            x = np.array(spisok_x)
-            y = np.array(spisok_y)
-
-            # Преобразование данных для экспоненциальной регрессии
-            coefficients = np.polyfit(x, np.log(y), 1)
-            y_fit = np.exp(coefficients[1]) * np.exp(coefficients[0] * x)
-
-            # Вычислим коэффициент детерминации
-            residuals = y - y_fit
-            ss_res = np.sum(residuals**2)
-            ss_tot = np.sum((y - np.mean(y))**2)
-            r_squared = 1 - (ss_res / ss_tot)
-            correlation=r_squared**(0.5)
-
-            x_exp = np.exp(x)
-
-            print("Коэффициент детерминации :", r_squared)
-            print("индекс корреляции :", correlation)
-
-            # Заданное значение x для предсказания y
-            x_pred = value_x
-
-            # Предсказание y для заданного x
-            y_pred = np.exp(coefficients[1]) * np.exp(coefficients[0] * x_pred)
-
-            print("Предсказанное значение y для x =", x_pred, ":", y_pred)
-            mape = np.mean(np.abs((y - y_fit) / y)) * 100
-            print("Средняя ошибка аппроксимации (MAPE):", mape)
-            y_pred=float(y_pred)
-            y_pred=round(y_pred,4)
-            fin = []
-            regressiya = 'Экспонента'
-            fin.append(correlation)
-            fin.append(mape)
-            fin.append(y_pred)
-            fin.append(regressiya)
-            return  fin
-        except:
-            print('ошибка расчетов')
-            fin = [0, 0, 0]
-            return fin
-    
-
-    def giperbolicheskaya(spisok_x, spisok_y, value_x):
-        #### 3 Гиперболическая
-
-        print()
-        print('Гиперболическая')
-        print()
-        try:
-            x = np.array(spisok_x)
-            y = np.array(spisok_y)
-
-            def hyperbolic_func(x, a, b):
-                return a / x + b
-
-            popt, _ = curve_fit(hyperbolic_func, x, y)
-
-            a_opt, b_opt = popt
-            
-
-            y_pred = hyperbolic_func(x, a_opt, b_opt)
-
-            r_squared = r2_score(y, y_pred)
-            correlation = np.corrcoef(y, y_pred)[0, 1]
-
-            print(f"Коэффициент детерминации: {r_squared}")
-            print(f"Индекс корреляции: {correlation}")
-
-            # Вычисление средней ошибки аппроксимации (MAPE)
-            mape = mean_absolute_percentage_error(y, y_pred)
-            print("Средняя ошибка аппроксимации (MAPE):", mape)
-            x = value_x
-            y_pred = hyperbolic_func(x, a_opt, b_opt)
-            print('y_pred гиперболическая ',y_pred, ' при х = 50')
-            y_pred=float(y_pred)
-            y_pred=round(y_pred,4)
-            fin = []
-            regressiya = 'Гиперболическая'
-            fin.append(correlation)
-            fin.append(mape)
-            fin.append(y_pred)
-            fin.append(regressiya)
-            return  fin
-        except:
-            print('ошибка расчетов')
-            fin = [0, 0, 0]
-            return fin
-
-
-
-    def stepennaya(spisok_x, spisok_y, value_x):
-        #### 4 Степенная
-        print()
-        print('Степенная')
- 
-        try:
-            # Преобразование данных для степенной регрессии
-            # Преобразование в numpy массивы
-            x = np.array(spisok_x)
-            y = np.array(spisok_y)
-
-            # Преобразование данных для степенной регрессии
-            log_x = np.log(x)
-            log_y = np.log(y)
-
-            # Выполнение линейной регрессии в преобразованном пространстве
-            coefficients = np.polyfit(log_x, log_y, 1)
-            a = np.exp(coefficients[1])
-            b = coefficients[0]
-
-            # Вычисление y_pred
-            y_pred = a * x**b
-
-            # 1. Коэффициент детерминации (R-squared)
-            r_squared = r2_score(y, y_pred)
-            print("1. Коэффициент детерминации (R-squared):", r_squared)
-
-            # 2. Индекс корреляции
-            correlation = np.corrcoef(y, y_pred)[0, 1]
-            print("2. Индекс корреляции:", correlation)
-
-            # 3. Средняя ошибка аппроксимации (MAPE)
-            def mean_absolute_percentage_error(y_true, y_pred):
-                return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
-
-            mape = mean_absolute_percentage_error(y, y_pred)
-            print("3. Средняя ошибка аппроксимации (MAPE):", mape)
-
-            # 4. Предсказание y для заданного x
-            x_pred = 50
-            y_pred = a * x_pred**b
-            print(f"4. Предсказанное значение y для x = {x_pred}: {y_pred}")
-            y_pred=float(y_pred)
-            y_pred=round(y_pred,4)
-            fin = []
-            regressiya = 'Степенная'
-            fin.append(correlation)
-            fin.append(mape)
-            fin.append(y_pred)
-            fin.append(regressiya)
-            
-            
-            return  fin
-        except:
-                print('ошибка расчетов')
-                fin = [0, 0, 0]
-                return fin
-
-
-
-    def parabolicheskaya(spisok_x, spisok_y, value_x):
-        #### 5 Параболическая
-        print()
-        print('Параболическая')
-        print()
-        try:
-            x = np.array(spisok_x)
-            y = np.array(spisok_y)
-            p = np.polyfit(x, y, 2)  # Подгоняем квадратичную функцию (степень 2) к данным
-            y_pred = np.polyval(p, x)  # Предсказанные значения
-            
-            # Вычисление коэффициента детерминации
-            correlation_matrix = np.corrcoef(y, y_pred)
-            correlation = correlation_matrix[0, 1]
-            r_squared = correlation**2
-            print('Коэффициент детерминации (R^2):', r_squared)
-
-            # Вычисление индекса корреляции
-            print('Индекс корреляции:', correlation)
-
-            # Вычисление средней ошибки аппроксимации (MAPE)
-            mape = mean_absolute_percentage_error(y, y_pred)
-            print("Средняя ошибка аппроксимации (MAPE):", mape)
-
-            # Предсказание y для заданного x
-            x_pred = value_x
-            y_pred = np.polyval(p, x_pred)  # Предсказанное значение
-            print(f'y_pred гиперболическая {y_pred} при x = 50')
-            print()
-            y_pred=float(y_pred)
-            y_pred=round(y_pred,4)
-
-            fin = []
-            regressiya = 'Параболическая'
-            fin.append(correlation)
-            fin.append(mape)
-            fin.append(y_pred)
-            fin.append(regressiya)
-            
-            return  fin
-        except:
-            print('ошибка расчетов')
-            fin = [0, 0, 0]
-            return fin
-
-
-    
-    def logarifmicheskaya(spisok_x, spisok_y, value_x):
-        #### Логарифмическая регрессия
-        print()
-        print('Логарифмическая регрессия')
-        print()
-        try:
-            x = np.array(spisok_x)
-            y = np.array(spisok_y)
-
-            # Преобразование данных для логарифмической регрессии
-            log_x = np.log(x)
-            p = np.polyfit(log_x, y, 1)  # Подгоняем линейную функцию к данным
-            a = p[0]
-            b = p[1]
-
-            # Вычисление y_pred
-            y_pred = a * np.log(x) + b
-
-            # 1. Коэффициент детерминации (R-squared)
-            r_squared = r2_score(y, y_pred)
-            print("1. Коэффициент детерминации (R-squared):", r_squared)
-
-            # 2. Индекс корреляции
-            correlation = np.corrcoef(y, y_pred)[0, 1]
-            print("2. Индекс корреляции:", correlation)
-
-            # 3. Средняя ошибка аппроксимации (MAPE)
-            def mean_absolute_percentage_error(y_true, y_pred):
-                return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
-
-            mape = mean_absolute_percentage_error(y, y_pred)
-            print("3. Средняя ошибка аппроксимации (MAPE):", mape)
-
-            # 4. Предсказание y для заданного x
-            x_pred = value_x
-            y_pred = a * np.log(x_pred) + b
-            print(f"4. Предсказанное значение y для x = {x_pred}: {y_pred}")
-            y_pred=float(y_pred)
-            y_pred=round(y_pred,4)
-
-            fin = []
-            regressiya = 'Логарифмическая'
-            fin.append(correlation)
-            fin.append(mape)
-            fin.append(y_pred)
-            fin.append(regressiya)
-            
-            return  fin
-        except:
-            print('ошибка расчетов')
-            fin = [0, 0, 0]
-            return fin
 
 
     fin_lin = lineinaya(first_column_x, second_column_y, value_x)
@@ -427,55 +113,68 @@ def submit_table():
         elif 0 <= first_value < 0.1:
             intervals["0 до 0.1"].append(lst)
 
+
+
+    print("intervalintervalinterval",intervals)
     reg = ''
     #проверяем интервалы 
     def check_inter(interval):
-        if "0.99 до 1" in intervals:
-            values123 = intervals["0.99 до 1"]
-            min_value_list = min(values123, key=lambda x: x[1])
-            reg = min_value_list[3]
-            return min_value_list[2], reg 
-        elif '0.9 до 0.99' in intervals  and intervals['c']:
-            values = intervals['0.9 до 0.99']
-            min_value_list = min(values, key=lambda x: x[1])
-            reg = min_value_list[3]
-            return min_value_list[2], reg 
-        elif '0.7 до 0.9' in intervals  and intervals['0.7 до 0.9']:
-            values = intervals['0.7 до 0.9']
-            min_value_list = min(values, key=lambda x: x[1])
-            reg = min_value_list[3]
-            return min_value_list[2], reg 
-        elif '0.5 до 0.7' in intervals  and intervals['0.5 до 0.7']:
-            values = intervals['0.5 до 0.7']
-            min_value_list = min(values, key=lambda x: x[1])
-            reg = min_value_list[3]
-            return min_value_list[2], reg 
-        elif '0.3 до 0.5' in intervals  and intervals['0.3 до 0.5']:
-            values = intervals['0.3 до 0.5']
-            min_value_list = min(values, key=lambda x: x[1])
-            reg = min_value_list[3]
-            return min_value_list[2], reg 
-        elif '0.1 до 0.3' in intervals  and intervals['0.1 до 0.3']:
-            values = intervals['0.1 до 0.3']
-            min_value_list = min(values, key=lambda x: x[1])
-            reg = min_value_list[3]
-            return min_value_list[2], reg 
-        elif '0 до 0.1' in intervals  and intervals['0 до 0.1']:
-            values = intervals['0 до 0.1']
-            min_value_list = min(values, key=lambda x: x[1])
-            reg = min_value_list[3]
-            return min_value_list[2], reg 
-        else:
-            return print('ошибка')
+        try:
+            # Проверяем, если есть хотя бы один элемент в значении для каждого интервала
+            if "0.99 до 1" in interval and interval["0.99 до 1"]:
+                values = interval["0.99 до 1"]
+                min_value_list = min(values, key=lambda x: x[1])
+                reg = min_value_list[3]
+                return min_value_list, reg 
+
+            if '0.9 до 0.99' in interval and interval['0.9 до 0.99']:
+                values = interval['0.9 до 0.99']
+                min_value_list = min(values, key=lambda x: x[1])
+                reg = min_value_list[3]
+                return min_value_list, reg
+
+            if '0.7 до 0.9' in interval and interval['0.7 до 0.9']:
+                values = interval['0.7 до 0.9']
+                min_value_list = min(values, key=lambda x: x[1])
+                reg = min_value_list[3]
+                return min_value_list, reg
+
+            if '0.5 до 0.7' in interval and interval['0.5 до 0.7']:
+                values = interval['0.5 до 0.7']
+                min_value_list = min(values, key=lambda x: x[1])
+                reg = min_value_list[3]
+                return min_value_list, reg 
+
+            if '0.3 до 0.5' in interval and interval['0.3 до 0.5']:
+                values = interval['0.3 до 0.5']
+                min_value_list = min(values, key=lambda x: x[1])
+                reg = min_value_list[3]
+                return min_value_list, reg 
+
+            if '0.1 до 0.3' in interval and interval['0.1 до 0.3']:
+                values = interval['0.1 до 0.3']
+                min_value_list = min(values, key=lambda x: x[1])
+                reg = min_value_list[3]
+                return min_value_list, reg 
+
+            if '0 до 0.1' in interval and interval['0 до 0.1']:
+                values = interval['0 до 0.1']
+                min_value_list = min(values, key=lambda x: x[1])
+                reg = min_value_list[3]
+                return min_value_list, reg 
+
+            # Если ни один из интервалов не содержит данных
+            return 0, 'ошибка'
+
+        except Exception as e:
+            print("Ошибка:", e)
+            return 0, 'ошибка'
     
 
-
+    
     result, reg = check_inter(intervals)
-    # result=round(result,result)
+    print("result=",result,"reg=",reg)
     
-    # result = float(result,3)
-    # result = round(result,3)
-    print('check_inter(intervalsresult)',result, type(result))
 
     
     print("Результат:48" , )
@@ -492,9 +191,17 @@ def submit_table():
     print('лога')
     print(fin_loga,)
     print('reg', reg)
+   
+
+    print('!!!!!!!!!!!!!!!!!234234!!!!!!!!!!!!!!',result)       
+    # plot_data = plot_and_encode(first_column_x,second_column_y,result[3],result[4],result[5],value_x)
+    if reg =="Параболическая":
+        plot_data = plot_and_encode(first_column_x,second_column_y,result[3],result[4],result[5],value_x,result[6],)
+    else:
+        plot_data = plot_and_encode(first_column_x,second_column_y,result[3],result[4],result[5],value_x)
 
 
-    return render_template('table_result.html', table_data=table_data, first_value=first_value_table, second_value=second_value_table, result=result, value_x=value_x,reg=reg )
+    return render_template('table_result.html', table_data=table_data, first_value=first_value_table, second_value=second_value_table, result=result[2], value_x=value_x,reg=reg,user_image=plot_data )
 
 
 
